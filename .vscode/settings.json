@@ -1,0 +1,4 @@
+{
+    "python.analysis.typeCheckingMode": "strict",
+    "livePreview.defaultPreviewPath": "/ai_flow.html"
+}
