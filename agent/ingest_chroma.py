@@ -24,7 +24,7 @@ from sentence_transformers import SentenceTransformer
 CHROMA_PATH = os.environ.get("CHROMA_PATH", "/Users/macmini/matcha/chroma_db")
 DATA_DIR    = os.environ.get("MATCHA_DATA_DIR", str(Path(__file__).parent / "data"))
 
-EMBED_MODEL = "BAAI/bge-large-en-v1.5"
+EMBED_MODEL = "BAAI/bge-small-en-v1.5"
 
 JOBS_PATH     = os.path.join(DATA_DIR, "all_jobs_fixed.json")
 COURSES_PATH  = os.path.join(DATA_DIR, "course_catalog.json")
@@ -155,9 +155,21 @@ def main():
     # ── Keywords ──
     print("\n[3/3] Ingesting matcha_keywords...")
     keywords = load_json(KEYWORDS_PATH)
-    # keyword_per_skill ga punya field id, buat dari skill name
+    
+    # keyword_per_skill ga punya field id, buat dari skill name dengan deduplikasi
+    seen_ids = set()
+    unique_keywords = []
     for item in keywords:
-        item["id"] = f"kw_{item['skill'].lower().replace(' ', '_').replace('/', '_')}"
+        item_id = f"kw_{item['skill'].lower().replace(' ', '_').replace('/', '_')}"
+        if item_id not in seen_ids:
+            item["id"] = item_id
+            seen_ids.add(item_id)
+            unique_keywords.append(item)
+        else:
+            print(f"  Warning: Skipping duplicate skill '{item['skill']}' (ID: {item_id})")
+            
+    keywords = unique_keywords
+
     col_keywords = client.get_or_create_collection(
         name="matcha_keywords",
         metadata={"hnsw:space": "cosine"},
