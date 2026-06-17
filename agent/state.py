@@ -47,6 +47,7 @@ class MatchaState(TypedDict, total=False):
     # === STRUCTURED DATA ===
     learning_roadmap: Optional[Dict[str, Any]] # Peta jalan belajar terstruktur
     ats_analysis: Optional[Dict[str, Any]]     # Analisis ATS CV/LinkedIn vs Job
+    courses_catalog: Optional[List[Dict[str, Any]]] # Katalog kursus pencarian dari Chroma
 
     # === OUTPUT AGENT ===
     agent_response: Optional[str]            # Respons akhir yang ditampilkan ke user

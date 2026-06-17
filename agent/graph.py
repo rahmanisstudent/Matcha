@@ -20,6 +20,13 @@ def route_after_profiler(state: MatchaState) -> str:
     """
     intent = state.get("detected_intent", "CAREER_EXPLORATION")
 
+    has_roadmap = bool(state.get("learning_roadmap", {}).get("phases"))
+    user_input = (state.get("user_input") or "").lower()
+    is_reanalysis_request = any(keyword in user_input for keyword in [
+        "analisis ulang", "buat ulang", "buat roadmap baru", "regenerasi",
+        "re-analyze", "remake roadmap", "update roadmap", "ubah karir", "ganti karir"
+    ])
+
     routing_map = {
         "CAREER_EXPLORATION": "skill_gap_analyzer",
         "SKILL_INQUIRY":      "skill_gap_analyzer",
@@ -31,7 +38,15 @@ def route_after_profiler(state: MatchaState) -> str:
         "CONSTRAINT_UPDATE":  "general_responder",
     }
 
-    return routing_map.get(intent, "skill_gap_analyzer")
+    next_node = routing_map.get(intent, "skill_gap_analyzer")
+
+    # Jika sudah ada roadmap dan bukan request analisis ulang, arahkan chat umum ke responder
+    if has_roadmap and not is_reanalysis_request:
+        if next_node in ("skill_gap_analyzer", "cv_reviewer", "linkedin_reviewer"):
+            if intent not in ("CV_REVIEW", "LINKEDIN_REVIEW"):
+                return "general_responder"
+
+    return next_node
 
 
 # ─────────────────────────────────────────────

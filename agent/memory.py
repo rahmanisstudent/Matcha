@@ -62,6 +62,7 @@ def save_session(session_id: str, state: Dict[str, Any]):
         "job_description",
         "ats_analysis",
         "learning_roadmap",
+        "courses_catalog",
         "cv_uploaded",
         "linkedin_uploaded",
         "cv_filename",

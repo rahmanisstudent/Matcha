@@ -371,12 +371,30 @@ def skill_gap_analyzer_node(state: MatchaState) -> MatchaState:
     # Format courses catalog for prompt
     courses_catalog_list = []
     for c in chroma_data.get("matching_courses", []):
-        meta = c.get("metadata", {})
+        meta = c.get("metadata", {}) or {}
+        
+        # skills_covered is stored as JSON string in metadata, so we need to decode it
+        skills_covered_raw = meta.get("skills_covered") or "[]"
+        if isinstance(skills_covered_raw, str):
+            try:
+                skills_covered = json.loads(skills_covered_raw)
+            except:
+                skills_covered = []
+        else:
+            skills_covered = skills_covered_raw
+
         courses_catalog_list.append({
+            "id": c.get("id") or meta.get("id") or "",
             "title": meta.get("title") or meta.get("course_name") or "",
             "platform": meta.get("platform") or "",
+            "provider": meta.get("provider") or "",
+            "price": meta.get("price") or 0,
+            "duration_weeks": meta.get("duration_weeks") or 4,
+            "skills_covered": skills_covered,
+            "format": meta.get("format") or "video",
+            "level": meta.get("level") or "beginner",
+            "bahasa": meta.get("bahasa") or "English",
             "url": meta.get("url") or "",
-            "skills_covered": meta.get("skills_covered") or []
         })
 
     # Potong cv/linkedin text agar tidak terlalu banyak token
@@ -480,12 +498,27 @@ def skill_gap_analyzer_node(state: MatchaState) -> MatchaState:
     if custom_match_rate is not None:
         match_rate = custom_match_rate
 
+    # Preserve phase completion status from existing roadmap if available
+    existing_roadmap = state.get("learning_roadmap") or {}
+    existing_phases = existing_roadmap.get("phases") or []
+    if existing_phases and learning_roadmap and learning_roadmap.get("phases"):
+        for i, phase in enumerate(learning_roadmap["phases"]):
+            if i < len(existing_phases):
+                phase["completed"] = existing_phases[i].get("completed", False)
+            else:
+                phase["completed"] = False
+    elif learning_roadmap and learning_roadmap.get("phases"):
+        for phase in learning_roadmap["phases"]:
+            if "completed" not in phase:
+                phase["completed"] = False
+
     return {
         **state,
         "user_profile": updated_profile,
         "skill_gaps": chat_response,
         "agent_response": chat_response,
         "learning_roadmap": learning_roadmap,
+        "courses_catalog": courses_catalog_list,
         "ats_analysis": {
             "match_rate": match_rate,
             "mastered_skills": mastered_skills,
@@ -609,7 +642,8 @@ def linkedin_reviewer_node(state: MatchaState) -> MatchaState:
 
 def general_responder_node(state: MatchaState) -> MatchaState:
     """
-    Menangani intent umum: push back, konfirmasi, update constraint.
+    Menangani intent umum: push back, konfirmasi, update constraint, progres belajar,
+    serta tanya jawab seputar skill & resource jika roadmap sudah ada.
     Output: agent_response
     """
     user_input = state.get("user_input", "")
@@ -617,6 +651,53 @@ def general_responder_node(state: MatchaState) -> MatchaState:
     user_profile = state.get("user_profile") or {}
     drift_detected = state.get("drift_detected", False)
     messages = state.get("messages", [])
+
+    # Format progres belajar dari roadmap jika ada
+    learning_roadmap = state.get("learning_roadmap") or {}
+    progress_str = "Belum ada roadmap yang dibuat atau belum ada progres."
+    if learning_roadmap and learning_roadmap.get("phases"):
+        phases = learning_roadmap.get("phases", [])
+        completed_phases = []
+        active_phase = None
+        
+        for idx, p in enumerate(phases):
+            p_name = p.get("phase_name") or p.get("title") or f"Fase {idx+1}"
+            if p.get("completed"):
+                completed_phases.append(p_name)
+            elif active_phase is None:
+                active_phase = p_name
+                
+        progress_str = f"Durasi total: {learning_roadmap.get('total_weeks', 12)} minggu.\n"
+        if completed_phases:
+            progress_str += f"Fase yang sudah diselesaikan: {', '.join(completed_phases)}.\n"
+        else:
+            progress_str += "Belum ada fase yang diselesaikan.\n"
+            
+        if active_phase:
+            progress_str += f"Fase aktif saat ini: {active_phase}.\n"
+        else:
+            progress_str += "Semua fase dalam roadmap telah diselesaikan! 🎉\n"
+
+    # Ambil katalog kursus dan analisis ATS
+    courses_catalog = state.get("courses_catalog") or []
+    ats_analysis = state.get("ats_analysis") or {}
+    
+    courses_str = "Belum ada rekomendasi kursus."
+    if courses_catalog:
+        courses_str = "\n".join(
+            f"- {c.get('title')} ({c.get('platform')}) - Level: {c.get('level')}, Durasi: {c.get('duration_weeks')} minggu. URL: {c.get('url')}"
+            for c in courses_catalog[:6]
+        )
+        
+    gaps_str = "Belum ada data skill gap."
+    if ats_analysis:
+        gaps_list = ats_analysis.get("skill_gaps") or []
+        if gaps_list:
+            gaps_str = "\n".join(
+                f"- {g.get('skill')} (Severity: {g.get('gap_severity')}) - Saran: {g.get('suggestion')}"
+                if isinstance(g, dict) else f"- {g}"
+                for g in gaps_list
+            )
 
     chat_history_text = "\n".join(
         f"{m['role'].upper()}: {m['content']}" for m in messages[-6:]
@@ -631,6 +712,15 @@ def general_responder_node(state: MatchaState) -> MatchaState:
 
     prompt = f"""Kamu adalah Matcha, asisten karir adaptif yang ramah dan suportif dalam Bahasa Indonesia.
 
+Progres belajar user saat ini:
+{progress_str}
+
+Kesenjangan Skill (Skill Gaps) yang perlu dikembangkan:
+{gaps_str}
+
+Rekomendasi Kursus yang tersedia:
+{courses_str}
+
 Riwayat percakapan:
 {chat_history_text}
 
@@ -638,13 +728,15 @@ Intent user saat ini: {detected_intent}
 Input terbaru user: {user_input}
 Profil user: {json.dumps(user_profile, ensure_ascii=False)}
 
-Berikan respons yang natural, empatis, dan membantu sesuai konteks.
+Berikan respons yang natural, empatis, dan membantu sesuai konteks:
+- Jika user bertanya tentang progres belajar mereka, sebutkan progres belajar mereka di atas secara spesifik (apa saja yang sudah selesai, dan apa fase aktif saat ini).
+- Jika user menanyakan tentang kursus, skill, atau rekomendasi, gunakan data Rekomendasi Kursus dan Kesenjangan Skill di atas.
 - Jika PUSH_BACK: akui keberatan user, tawarkan alternatif atau klarifikasi.
 - Jika CONFIRMATION: konfirmasi pemahaman dan tanyakan langkah selanjutnya.
-- Jika CONSTRAINT_UPDATE: akui update constraint dan tanyakan apakah perlu revisi learning path.
+- Jika CONSTRAINT_UPDATE: akui update constraint dan tanyakan apakah perlu rencana belajar.
 {drift_note}
 
-Respons dalam Bahasa Indonesia yang hangat dan tidak lebih dari 3 paragraf."""
+Respons dalam Bahasa Indonesia yang hangat dan tidak lebih dari 3 paragraf. JANGAN buat/tulis ulang JSON roadmap di respons Anda, cukup jawab berupa teks chat percakapan."""
 
     try:
         response_text = _call_llm(prompt)

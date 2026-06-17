@@ -4,7 +4,7 @@ __pycache__/
 .DS_Store
 *.pyc
 .ipynb_checkpoints
-
+local-matcha/
 # Databases
 *.sqlite3
 *.db
@@ -12,6 +12,7 @@ chroma_db/
 
 # Uploads
 uploads/
+upload-docs/
 
 # Large Model Binaries
 agent/indobert_intent_model/*.zip

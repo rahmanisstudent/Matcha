@@ -15,16 +15,34 @@ from utils.helpers import extract_cv_text
 
 init_db()
 
+# Auto-populate ChromaDB if empty on server startup
+try:
+    from agent.chroma_client import _get_collection
+    col = _get_collection("matcha_courses")
+    if col.count() == 0:
+        print("ChromaDB collections empty. Running auto-ingestion...")
+        from agent.ingest_chroma import main as ingest_main
+        ingest_main()
+except Exception as e:
+    print("Auto-ingestion check failed or skipped:", e)
+
+UPLOAD_DIR = os.environ.get("MATCHA_UPLOAD_DIR", "upload-docs")
+
 app = FastAPI()
+
+allowed_origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174"
+]
+env_origins = os.environ.get("ALLOWED_ORIGINS")
+if env_origins:
+    allowed_origins.extend([origin.strip() for origin in env_origins.split(",")])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,8 +78,8 @@ async def chat(request: ChatRequest):
         "previous_intent_history": [],
         "cv_text": None,
         "linkedin_text": None,
-        **(request.agent_state or {}),
         **saved,
+        **(request.agent_state or {}),
         "user_input": request.user_input,
     }
     
@@ -88,17 +106,17 @@ async def upload(
     file_like.filename = file.filename
     extracted_text = extract_cv_text(file_like)
     
-    # Save file to uploads folder for preview
-    os.makedirs("uploads", exist_ok=True)
+    # Save file to upload-docs folder for preview
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
     prefix = f"{session_id}_{file_type}_"
-    for filename in os.listdir("uploads"):
+    for filename in os.listdir(UPLOAD_DIR):
         if filename.startswith(prefix):
             try:
-                os.remove(os.path.join("uploads", filename))
+                os.remove(os.path.join(UPLOAD_DIR, filename))
             except:
                 pass
     
-    file_path = os.path.join("uploads", f"{prefix}{file.filename}")
+    file_path = os.path.join(UPLOAD_DIR, f"{prefix}{file.filename}")
     with open(file_path, "wb") as f:
         f.write(contents)
     
@@ -123,12 +141,12 @@ async def upload(
 
 @app.get("/preview/{session_id}/{file_type}")
 async def preview(session_id: str, file_type: str):
-    if not os.path.exists("uploads"):
-        return {"error": "No uploads folder found"}
+    if not os.path.exists(UPLOAD_DIR):
+        return {"error": f"No {UPLOAD_DIR} folder found"}
     prefix = f"{session_id}_{file_type}_"
-    for filename in os.listdir("uploads"):
+    for filename in os.listdir(UPLOAD_DIR):
         if filename.startswith(prefix):
-            file_path = os.path.join("uploads", filename)
+            file_path = os.path.join(UPLOAD_DIR, filename)
             media_type = "application/pdf" if filename.lower().endswith(".pdf") else "application/octet-stream"
             original_filename = filename[len(prefix):]
             return FileResponse(
@@ -137,6 +155,11 @@ async def preview(session_id: str, file_type: str):
                 headers={"Content-Disposition": f"inline; filename=\"{original_filename}\""}
             )
     return {"error": "File not found"}
+
+@app.get("/session/{session_id}")
+async def get_session(session_id: str):
+    saved = load_session(session_id)
+    return {"agent_state": saved}
 
 @app.post("/review-document")
 async def review_document(request: ReviewRequest):
@@ -179,8 +202,8 @@ async def analyze_job(request: JobRequest):
         "previous_intent_history": [],
         "cv_text": None,
         "linkedin_text": None,
-        **(request.agent_state or {}),
         **saved,
+        **(request.agent_state or {}),
         "user_input": request.job_description,
         "job_description": request.job_description,
         "detected_intent": "CAREER_EXPLORATION",
@@ -212,11 +235,11 @@ async def delete_document(request: DeleteRequest):
     
     # Clean up upload file on disk
     prefix = f"{request.session_id}_{request.document_type}_"
-    if os.path.exists("uploads"):
-        for filename in os.listdir("uploads"):
+    if os.path.exists(UPLOAD_DIR):
+        for filename in os.listdir(UPLOAD_DIR):
             if filename.startswith(prefix):
                 try:
-                    os.remove(os.path.join("uploads", filename))
+                    os.remove(os.path.join(UPLOAD_DIR, filename))
                 except:
                     pass
                     

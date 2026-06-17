@@ -16,13 +16,17 @@ from pathlib import Path
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+
+# Load dotenv to resolve MATCHA_DATA_DIR and CHROMA_PATH correctly from .env
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"), override=True)
 
 # ─────────────────────────────────────────────
 # Config
 # ─────────────────────────────────────────────
 
-CHROMA_PATH = os.environ.get("CHROMA_PATH", "/Users/macmini/matcha/chroma_db")
-DATA_DIR    = os.environ.get("MATCHA_DATA_DIR", str(Path(__file__).parent / "data"))
+CHROMA_PATH = os.environ.get("CHROMA_PATH", "./chroma_db")
+DATA_DIR    = os.environ.get("MATCHA_DATA_DIR", "./data")
 
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"
 
