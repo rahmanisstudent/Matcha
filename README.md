@@ -1,6 +1,6 @@
-<div align="center">
-
-<img src="https://raw.githubusercontent.com/naemaaa/Matchaa/main/frontend/public/logo.svg" alt="Matcha Logo" width="80" height="80" />
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rahmanisstudent/Matcha/main/frontend/public/logoMatchaa.png" alt="Matcha Logo" width="300"/>
+</p>
 
 # 🍵 Matcha Career AI
 
@@ -8,15 +8,11 @@
 
 Analisis skill gap, review CV & LinkedIn, dan buat learning roadmap — semua dalam satu platform.
 
-<br/>
-
 [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
 [![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)](https://groq.com)
-
-</div>
 
 ---
 
@@ -98,8 +94,8 @@ Analisis skill gap, review CV & LinkedIn, dan buat learning roadmap — semua da
 ### 1. Clone & Setup Backend
 
 ```bash
-git clone https://github.com/naemaaa/Matchaa.git
-cd Matchaa
+git clone https://github.com/rahmanisstudent/Matcha.git
+cd Matcha
 
 # Buat virtual environment
 python -m venv venv
@@ -112,7 +108,7 @@ pip install -r requirements.txt
 
 ### 2. Konfigurasi Environment
 
-Buat file `.env` di root project:
+Buat file `.env` di root project (lihat `.env.example`):
 
 ```env
 GROQ_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxx
@@ -182,6 +178,8 @@ matcha/
 │
 ├── 📂 chroma_db/                 # ChromaDB vector database
 ├── 📂 data/                      # Data mentah (jobs, courses)
+├── 📂 matcha-data/               # Dataset training & referensi
+├── 📂 utils/                     # Utility functions
 ├── 📂 uploads/                   # File PDF yang di-upload user
 │
 ├── 📄 ai_flow.html               # Diagram arsitektur AI (production)
@@ -235,7 +233,7 @@ save_session() → SQLite
 JSON response → React frontend render
 ```
 
-> 📄 Lihat diagram visual interaktif: [`ai_flow.html`](./ai_flow.html) · [`ai_flow_detail.html`](./ai_flow_detail.html)
+> 📄 Lihat diagram visual interaktif: [`ai_flow.html`](https://github.com/rahmanisstudent/Matcha/blob/main/ai_flow.html) · [`ai_flow_detail.html`](https://github.com/rahmanisstudent/Matcha/blob/main/ai_flow_detail.html)
 
 ---
 
@@ -257,6 +255,7 @@ JSON response → React frontend render
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **[FastAPI](https://fastapi.tiangolo.com)** — REST API server
 - **[LangGraph](https://langchain-ai.github.io/langgraph/)** — Multi-agent orchestration
 - **[Groq](https://groq.com)** — LLM inference (llama-3.3-70b, qwen3-32b, llama-3.1-8b)
@@ -268,6 +267,7 @@ JSON response → React frontend render
 - **SQLite** — Session persistence
 
 ### Frontend
+
 - **[React 19](https://react.dev)** — UI framework
 - **[Vite 8](https://vitejs.dev)** — Build tool & dev server
 - **[TailwindCSS 4](https://tailwindcss.com)** — Styling
@@ -278,7 +278,7 @@ JSON response → React frontend render
 
 ## 🌐 Deployment
 
-Untuk deploy ke production, set environment variables berikut di server backend:
+Set environment variables berikut di server backend:
 
 ```env
 GROQ_API_KEY=...
@@ -286,8 +286,6 @@ TAVILY_API_KEY=...
 
 # Jika ATS model di-deploy sebagai microservice terpisah:
 ATS_MODEL_API_URL=https://your-ats-service.railway.app
-
-# Jika tidak diset, sistem otomatis fallback ke local import
 ```
 
 **Rekomendasi stack deployment:**
@@ -308,8 +306,4 @@ MIT License — bebas digunakan dan dimodifikasi.
 
 ---
 
-<div align="center">
-
-Dibuat dengan 🍵 dan semangat belajar oleh **naemaaa**
-
-</div>
+<p align="center">Dibuat dengan 🍵 dan semangat belajar</p>
