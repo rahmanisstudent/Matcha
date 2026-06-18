@@ -2,17 +2,20 @@
   <img src="https://raw.githubusercontent.com/rahmanisstudent/Matcha/main/frontend/public/logoMatchaa.png" alt="Matcha Logo" width="300"/>
 </p>
 
-# 🍵 Matcha Career AI
+# <p align="center">🍵 Matcha Career AI</p>
 
-**Asisten karir adaptif berbasis AI yang membantu kamu menemukan jalur karir yang tepat.**
+<div align="center">
+  <p><strong>Asisten karir adaptif berbasis AI yang membantu kamu menemukan jalur karir yang tepat</strong></p>
+  <p>Analisis skill gap, review CV & LinkedIn, dan buat learning roadmap dalam satu platform</p>
+  
+  <br />
 
-Analisis skill gap, review CV & LinkedIn, dan buat learning roadmap — semua dalam satu platform.
-
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
-[![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)](https://groq.com)
+  [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+  [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
+  [![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)](https://groq.com)
+</div>
 
 ---
 
