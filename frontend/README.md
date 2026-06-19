@@ -13,6 +13,7 @@
   [![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
   [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+  [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
   [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B35?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
   [![Groq](https://img.shields.io/badge/Groq-LLM-F55036?style=for-the-badge)](https://groq.com)
 </div>
@@ -121,7 +122,7 @@ TAVILY_API_KEY=tvly-xxxxxxxxxxxxxxxxxxxx
 # ATS_MODEL_API_URL=https://your-ats-model.railway.app
 ```
 
-### 3. Jalankan Backend
+### 3. Jalankan Server Backend
 
 ```bash
 # Terminal 1 — FastAPI main server (port 8000)
@@ -131,7 +132,7 @@ python main.py
 python ats_model_app/api.py
 ```
 
-### 4. Jalankan Frontend
+### 4. Jalankan App Frontend
 
 ```bash
 cd frontend
@@ -146,50 +147,69 @@ npm run dev
 
 ```
 matcha/
-├── 📄 main.py                    # FastAPI entry point & semua endpoint
-├── 📄 app.py                     # Versi alternatif app
+├── 📄 main.py                      # FastAPI entry point & semua endpoint utama (Backend)
+├── 📄 app.py                       # Versi alternatif / testing app backend
+├── 📄 .env.example                 # Contoh template environment variables (Backend)
+├── 📄 .gitignore                   # File Git ignore untuk mengeksklusi folder virtualenv/node_modules
+├── 📄 README.md                    # Dokumentasi utama arsitektur proyek end-to-end
 │
-├── 📂 agent/                     # Core AI system (LangGraph)
-│   ├── graph.py                  # Definisi graph & routing logic
-│   ├── nodes.py                  # Semua node agent (6 nodes)
-│   ├── state.py                  # MatchaState TypedDict
-│   ├── prompts.py                # Semua prompt template
-│   ├── memory.py                 # SQLite session persistence
-│   ├── chroma_client.py          # ChromaDB vector search
-│   ├── tavily_search.py          # Tavily web search integration
-│   └── indobert_intent_model/    # Fine-tuned IndoBERT model files
+├── 📂 agent/                       # Core AI System (LangGraph)
+│   ├── graph.py                    # Definisi graph, state machine, & routing logic
+│   ├── nodes.py                    # Semua implementasi node agent (6 nodes)
+│   ├── state.py                    # MatchaState TypedDict (struktur data antar node)
+│   ├── prompts.py                  # Semua system prompt & template LLM
+│   ├── memory.py                   # SQLite session persistence untuk chat history
+│   ├── chroma_client.py            # Integrasi & query ChromaDB vector database
+│   ├── tavily_search.py            # Integrasi Tavily API untuk real-time web search
+│   └── 📂 indobert_intent_model/   # File model IndoBERT yang sudah di-fine-tuned
 │       ├── model.safetensors
 │       ├── config.json
 │       └── tokenizer.json
 │
-├── 📂 ats_model_app/             # ATS Match Rate ML microservice
-│   ├── api.py                    # FastAPI microservice (port 8080)
-│   ├── model.py                  # Inference logic
-│   ├── features.py               # Feature extraction (TF-IDF, dll)
-│   ├── train.py                  # Training script Random Forest
-│   ├── model.joblib              # Trained RF model
-│   └── vectorizer.joblib         # Fitted TF-IDF vectorizer
+├── 📂 ats_model_app/               # ATS Match Rate ML Microservice
+│   ├── api.py                      # FastAPI microservice khusus ATS (berjalan di port 8080)
+│   ├── model.py                    # Logika inferensi skor kecocokan CV & lowongan
+│   ├── features.py                 # Ekstraksi fitur teks (TF-IDF, preprocessing teks)
+│   ├── train.py                    # Script pelatihan ulang model Machine Learning
+│   ├── model.joblib                # Hasil training model Random Forest classifier
+│   └── vectorizer.joblib           # Hasil fitting TF-IDF Vectorizer
 │
-├── 📂 frontend/                  # React + Vite app
-│   └── src/
-│       ├── pages/Dashboard.jsx   # Halaman utama
-│       └── components/
-│           ├── ChatPanel.jsx     # Panel chat interaktif
-│           ├── Onboarding.jsx    # Flow onboarding user baru
-│           ├── ProfilePanel.jsx  # Panel profil & status
-│           └── Sidebar.jsx       # Navigasi sidebar
+├── 📂 frontend/                    # React + Vite Application (Source dari Repo Drizkia)
+│   ├── 📄 package.json             # Dependensi library frontend & scripts run/build
+│   ├── 📄 vite.config.js           # Konfigurasi bundler Vite & proxy API
+│   ├── 📄 tailwind.config.js       # Konfigurasi utilitas styling Tailwind CSS
+│   ├── 📄 index.html               # Main HTML entry point aplikasi web
+│   ├── 📂 public/                  # Static assets (Favicon, SVG icons, logoMatchaa.png)
+│   └── 📂 src/                     # Source Code Frontend
+│       ├── 📄 main.jsx             # Entry point React app & mounting root
+│       ├── 📄 App.jsx              # Komponen root & router utama aplikasi
+│       ├── 📄 index.css            # Global CSS & Tailwind directives
+│       ├── 📂 services/            # Integrasi API (axios/fetch) menuju backend
+│       │   └── api.js              # Base API configuration & endpoint routing
+│       ├── 📂 page/ (atau pages/)  # Komponen halaman utama aplikasi
+│       │   ├── PageLanding.jsx     # Halaman landing page awal
+│       │   ├── PageLogin.jsx       # Halaman autentikasi login
+│       │   ├── PageDashboard.jsx   # Halaman dashboard utama pengguna
+│       │   ├── PageCareerPath.jsx  # Fitur analisis jalur karir rekomendasi AI
+│       │   ├── PageDocument.jsx    # Fitur manajemen dokumen & CV upload
+│       │   ├── PageResource.jsx    # Fitur rekomendasi course & materi belajar
+│       │   ├── PageSetting.jsx     # Halaman pengaturan profil & preferensi akun
+│       │   └── ChatBot.jsx         # Komponen halaman penuh AI Assistant
+│       └── 📂 components/          # Reusable UI Components
+│           ├── ChatPanel.jsx       # Panel interaksi chat dengan MatchaAgent
+│           ├── Onboarding.jsx      # Alur data onboarding pengguna baru
+│           ├── ProfilePanel.jsx    # Panel ringkasan info profil & kompetensi
+│           └── Sidebar.jsx         # Bar navigasi utama samping
 │
-├── 📂 chroma_db/                 # ChromaDB vector database
-├── 📂 data/                      # Data mentah (jobs, courses)
-├── 📂 matcha-data/               # Dataset training & referensi
-├── 📂 utils/                     # Utility functions
-├── 📂 uploads/                   # File PDF yang di-upload user
+├── 📂 chroma_db/                   # Local storage untuk persistensi data ChromaDB Vector
+├── 📂 data/                        # Data mentah pendukung (Scraped Jobs, Courses dataset)
+├── 📂 matcha-data/                 # Dataset latih AI, benchmark, & dokumen referensi
+├── 📂 utils/                       # Kumpulan reusable helper/utility functions backend
+├── 📂 uploads/                     # Direktori penyimpanan sementara file PDF CV yang di-upload user
 │
-├── 📄 ai_flow.html               # Diagram arsitektur AI (production)
-└── 📄 ai_flow_detail.html        # Penjelasan alur AI end-to-end
+├── 📄 ai_flow.html                 # Diagram arsitektur visual alur AI (Production view)
+└── 📄 ai_flow_detail.html          # Penjelasan dokumentasi alur data AI dari ujung ke ujung
 ```
-
----
 
 ## 🔄 Alur Kerja AI (End-to-End)
 
@@ -295,7 +315,7 @@ ATS_MODEL_API_URL=https://your-ats-service.railway.app
 
 | Layanan | Platform |
 |---|---|
-| Frontend | Vercel / Netlify |
+| Frontend (/frontend) | Vercel / Netlify |
 | Backend (main.py) | Railway / Render / VPS |
 | ATS Model API (opsional) | Railway / Render (server terpisah) |
 
